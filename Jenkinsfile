@@ -46,10 +46,13 @@ pipeline {
 
 	stage('App validation') {
             steps {
-                //script {
-                //    sh 'docker run '
-                //}
-                echo "docker ID: $image_id"
+                script {
+                    echo "docker ID: $image_id"
+                    image_id.each {
+                        println "${it}"
+                    	sh "docker run -d --rm -p 5000:5000 -p 6006:6006 -p 8888:8888 ${it}"
+		    }
+                }
             }
         }
 
