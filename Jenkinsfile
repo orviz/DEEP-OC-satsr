@@ -14,15 +14,8 @@ pipeline {
     }
 
     stages {
-
-        stage('Validate metadata') {
-            steps {
-                checkout scm
-                sh 'deep-app-schema-validator metadata.json'
-            }
-        }
-
         stage('Docker image building') {
+	    /*
             when {
                 anyOf {
                     branch 'master'
@@ -30,39 +23,18 @@ pipeline {
                     buildingTag()
                 }
             }
+            */
             steps{
                 checkout scm
                 script {
                     // build different tags
                     id = "${env.dockerhub_repo}"
 
-                    if (env.BRANCH_NAME == 'master') {
-                       // CPU (aka latest, i.e. default)
-                       id_cpu = DockerBuild(id,
-                                            tag: ['latest', 'cpu'],
-                                            build_args: ["tag=${env.base_cpu_tag}",
-                                                         "branch=master"])
-
-                       // GPU
-                       id_gpu = DockerBuild(id,
-                                            tag: ['gpu'],
-                                            build_args: ["tag=${env.base_gpu_tag}",
-                                                         "branch=master"])
-                    }
-
-                    if (env.BRANCH_NAME == 'test') {
-                       // CPU
-                       id_cpu = DockerBuild(id,
-                                            tag: ['test', 'cpu-test'],
-                                            build_args: ["tag=${env.base_cpu_tag}",
-                                                         "branch=test"])
-
-                       // GPU
-                       id_gpu = DockerBuild(id,
-                                            tag: ['gpu-test'],
-                                            build_args: ["tag=${env.base_gpu_tag}",
-                                                         "branch=test"])
-                    }
+                    // GPU
+                    image_id = DockerBuild(id,
+                                           tag: ['test_run'],
+                                           build_args: ["tag=${env.base_gpu_tag}",
+                                                        "branch=master"])
                 }
             }
             post {
@@ -72,6 +44,16 @@ pipeline {
             }
         }
 
+	stage('App validation') {
+            steps {
+                //script {
+                //    sh 'docker run '
+                //}
+                echo "docker ID: $image_id"
+            }
+        }
+
+	/*
         stage('Docker Hub delivery') {
             when {
                 anyOf {
@@ -110,5 +92,6 @@ pipeline {
                 }
             }
         }
+	*/
     }
 }
